@@ -35,3 +35,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Approvals on by default; `agent-flo.dangerously_disable_approvals` turns them off, with
   a warning in `package:discover` and `php artisan optimize` output, and
   `php artisan agent-flo:approvals --ci` to fail a build. Declared in `resources/hitl.json`.
+  `optimize` runs its tasks with their output discarded, so the command writes its
+  warnings to stderr when silenced; measured on a real Laravel 13 app, where it otherwise
+  printed only the task name.

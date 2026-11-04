@@ -9,17 +9,6 @@ use AgentFlo\Store\FlowStore;
 use AgentFlo\Store\InMemoryStore;
 use AgentFlo\Store\RunStore;
 
-/** A delegation that has authored a draft replacing $flow's log template. */
-function draftChange(string $delegation, string $flowId, string $template = '{{ in.text }} done'): array
-{
-    $flow = floTool($delegation, 'flo_get', ['flow_id' => $flowId]);
-    $schema = $flow['untrusted']['schema'];
-    $schema['graph']['nodes'][2]['config']['message'] = $template;
-    floTool($delegation, 'import_workflow', ['workflow_id' => 'edit', 'schema' => $schema]);
-
-    return $flow;
-}
-
 function proposalSetup(array $config = []): array
 {
     $app = floApp($config);

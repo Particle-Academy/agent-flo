@@ -94,6 +94,24 @@ it('warns in package:discover output when an approval is off, and says nothing w
     }
 });
 
+it('still warns when optimize runs it silenced, on stderr', function (): void {
+    // `php artisan optimize` calls each task with its output discarded. Measured
+    // in a real Laravel 13 app: without this, optimize printed only "agent-flo .. DONE".
+    $app = floApp(['agent-flo.dangerously_disable_approvals' => ['change']]);
+    $stream = fopen('php://memory', 'w+');
+    \AgentFlo\Laravel\ApprovalsCommand::$stderr = $stream;
+    try {
+        $instance = $app->make(\AgentFlo\Laravel\ApprovalsCommand::class);
+        $instance->setLaravel($app);
+        $instance->run(new ArrayInput([]), new \Symfony\Component\Console\Output\NullOutput);
+    } finally {
+        \AgentFlo\Laravel\ApprovalsCommand::$stderr = null;
+    }
+    rewind($stream);
+
+    expect((string) stream_get_contents($stream))->toContain('WARNING agent-flo: approval [change] is OFF');
+});
+
 it('registers the command with php artisan optimize', function (): void {
     floApp();
 

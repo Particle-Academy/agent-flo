@@ -58,6 +58,17 @@ function sampleSchema(string $template = '{{ in.text }}'): array
     ];
 }
 
+/** A delegation that has authored a draft replacing $flowId's log template. */
+function draftChange(string $delegation, string $flowId, string $template = '{{ in.text }} done'): array
+{
+    $flow = floTool($delegation, 'flo_get', ['flow_id' => $flowId]);
+    $schema = $flow['untrusted']['schema'];
+    $schema['graph']['nodes'][2]['config']['message'] = $template;
+    floTool($delegation, 'import_workflow', ['workflow_id' => 'edit', 'schema' => $schema]);
+
+    return $flow;
+}
+
 /** Call one of a delegation's tools the way the model does, decoded. */
 function floTool(string $delegation, string $name, array $args = []): array
 {
