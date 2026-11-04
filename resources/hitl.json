@@ -1,0 +1,19 @@
+{
+  "package": "particle-academy/agent-flo",
+  "disable_with": "agent-flo.dangerously_disable_approvals",
+  "check": "php artisan agent-flo:approvals --ci",
+  "approvals": [
+    {
+      "name": "change",
+      "affects": "Creating or changing a flow in the host's store",
+      "default": "required",
+      "can_disable": true
+    },
+    {
+      "name": "after_run_data",
+      "affects": "Everything a delegation does after it has read run outputs, logs or errors",
+      "default": "required",
+      "can_disable": true
+    }
+  ]
+}

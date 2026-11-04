@@ -35,8 +35,10 @@ final class TestApp
     public static function boot(array $config = [], ?ScriptedProvider $provider = null): Application
     {
         $base = sys_get_temp_dir().DIRECTORY_SEPARATOR.'agent-flo-tests-'.getmypid();
-        if (! is_dir($base.'/config')) {
-            mkdir($base.'/config', 0777, true);
+        foreach (['/config', '/bootstrap/cache'] as $dir) {
+            if (! is_dir($base.$dir)) {
+                mkdir($base.$dir, 0777, true);
+            }
         }
         $app = new Application($base);
         $app->useConfigPath($base.'/config');
@@ -50,8 +52,9 @@ final class TestApp
             'cache' => ['default' => 'array', 'stores' => ['array' => ['driver' => 'array', 'serialize' => false]]],
             'queue' => ['default' => 'sync', 'connections' => ['sync' => ['driver' => 'sync']]],
             'logging' => ['default' => 'null', 'channels' => ['null' => ['driver' => 'monolog', 'handler' => \Monolog\Handler\NullHandler::class]]],
+            'auth' => ['defaults' => ['guard' => 'web'], 'guards' => [], 'providers' => []],
             'fancy-flow-mcp' => ['local' => ['enabled' => false], 'store' => ['driver' => 'array']],
-            'prism-harness' => ['provider' => 'scripted', 'model' => 'test-model', 'agent' => ['default' => 'assistant', 'modes' => [
+            'prism-harness' => ['agent' => ['provider' => 'scripted', 'model' => 'test-model', 'lock_ttl' => 300, 'lock_wait' => 0, 'default' => 'assistant', 'modes' => [
                 'assistant' => ['system_prompt' => 'You help.', 'tools' => [], 'skills' => [], 'max_steps' => 4],
             ]]],
         ]);
@@ -60,8 +63,11 @@ final class TestApp
         }
         $app->instance('config', $repository);
 
+        // The console kernel, so a test runs a command the way `php artisan` does.
+        $app->singleton(\Illuminate\Contracts\Console\Kernel::class, \Illuminate\Foundation\Console\Kernel::class);
+
         foreach ([FilesystemServiceProvider::class, DatabaseServiceProvider::class, CacheServiceProvider::class,
-            BusServiceProvider::class, QueueServiceProvider::class, PrismServiceProvider::class,
+            BusServiceProvider::class, QueueServiceProvider::class, \Illuminate\Auth\AuthServiceProvider::class, PrismServiceProvider::class,
             PrismHarnessServiceProvider::class, \FancyFlow\Laravel\FancyFlowServiceProvider::class,
             \AgentFlo\Laravel\AgentFloServiceProvider::class] as $serviceProvider) {
             $app->register($serviceProvider);
